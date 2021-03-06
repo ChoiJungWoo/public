@@ -218,11 +218,11 @@ fig.update_xaxes(
 fig.update_layout(template='plotly_white',
                   height=500, width=1000,
                   margin=dict(l=10, r=10, t=30, b=10),
-                  yaxis=dict(autorange = True, fixedrange= False, tickformat=",",),# domain=[0.3, 1]),
+                  yaxis=dict(autorange = True, fixedrange= False, tickformat=",",),
                   xaxis=dict(tickformat='%Y-%m-%d', rangeslider=dict(visible=False)),
-                  yaxis2=dict(autorange = True, fixedrange= False, tickformat=",",),# domain=[0.15, 0.25]),
+                  yaxis2=dict(autorange = True, fixedrange= True, tickformat=",",),
                   xaxis2=dict(tickformat='%Y-%m-%d'),
-                  yaxis3=dict(autorange = True, fixedrange= False, tickformat=",",),# domain=[0, 0.1]),
+                  yaxis3=dict(autorange = True, fixedrange= True, tickformat=",",),
                   xaxis3=dict(tickformat='%Y-%m-%d'),
                   legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.05, borderwidth=1)
                  )
