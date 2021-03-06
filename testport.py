@@ -87,12 +87,12 @@ candle = go.Candlestick(open=result.Open, close=result.Close,
                         name='포트폴리오')
 fig.add_trace(candle, row=1, col=1)
 
-for num, row in enumerate(result.loc[result.add_value == 1,:].values):
-    startindex = result.loc[result.add_value == 1,:].index[num]
+for num, row in enumerate(result.loc[result.add_value >= 1,:].values):
+    startindex = result.loc[result.add_value >= 1,:].index[num]
     tmp = data.copy().loc[data.구매일 == startindex,['구매가','구매개수','화폐']]
     if '달러' in tmp.화폐.values:
-        tmp.loc[tmp.화폐 == '달러','구매가'] = tmp.loc[tmp.화폐 == '달러','구매가'] * \
-            fdata['USD/KRW'].loc[fdata['USD/KRW'].index == startindex, 'Close'].values[0]
+        tmp.loc[tmp.화폐 == '달러','구매가'] = tmp.loc[tmp.화폐 == '달러','구매가'].values * \
+            fdata['USD/KRW'].loc[fdata['USD/KRW'].index == startindex, 'Close'].values
     tmp['value'] = tmp.구매가 * tmp.구매개수
     value = tmp.value.sum()
         
