@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import datetime
 import FinanceDataReader as fdr
-import plotly
+from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 
 data = pd.read_excel('bnp.xlsx').astype(dict(티커='str', 구매가='float', 화폐='str'))
@@ -79,7 +79,7 @@ for num in range(1,result.shape[0]):
     if result.loc[result.index[num], 'mdd'] > 0:
         result.loc[result.index[num:], 'mdd'] = 0
 
-fig = plotly.subplots.make_subplots(rows=2, cols=1, shared_xaxes=True,)
+fig = make_subplots(rows=2, cols=1, shared_xaxes=True,)
 
 candle = go.Candlestick(open=result.Open, close=result.Close,
                         high=result.High, low=result.Low,
