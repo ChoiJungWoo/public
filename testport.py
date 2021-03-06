@@ -80,7 +80,11 @@ for num in range(1,result.shape[0]):
     if result.loc[result.index[num], 'mdd'] > 0:
         result.loc[result.index[num:], 'mdd'] = 0
 
-fig = make_subplots(rows=2, cols=1, shared_xaxes=True,)
+fig = make_subplots(rows=3, cols=1, shared_xaxes=True,                 
+                    subplot_titles=('포트폴리오','MDD','변동성'),
+                    row_heights=[0.7, 0.15, 0.15],
+                    vertical_spacing=0.05
+                   )
 
 candle = go.Candlestick(open=result.Open, close=result.Close,
                         high=result.High, low=result.Low,
@@ -148,7 +152,7 @@ for num, row in enumerate(result.loc[result.add_value >= 1,:].values):
         ), row=1, col=1
     )
     
-line = go.Scatter(x=result.index, y=result.mdd, mode='lines', name='MDD')
+line = go.Scatter(x=result.index, y=result.mdd, mode='lines', line=dict(color='red'), showlegend=False, name='MDD')
 fig.add_trace(line, row=2, col=1)
 
 zerodays = result.loc[((result.mdd == 0) & (result.mdd.shift(1) != 0)) | ((result.mdd != 0) & (result.mdd.shift(1) == 0)),:].index
@@ -169,6 +173,7 @@ for num in range(len(zerodays)):
 riskdata = result.loc[(result.add_value == 0) & (result.add_value.shift(1) == 0),:]
 risk = go.Bar(x=riskdata.index, y=riskdata.value_change,
               marker_color='black',
+              showlegend=False,
               name='변동성')
 fig.add_trace(risk, row=3, col=1)
 
@@ -179,13 +184,16 @@ fig.add_hrect(
     layer="below", line_width=0,
     row=3, col=1)
 
-fig.update_layout(height=500, width=1000,
-                  margin=dict(l=10, r=10, t=10, b=10),
-                  yaxis=dict(autorange = True, fixedrange= False, tickformat=",", domain=[0.3, 1]),
+fig.update_layout(template='plotly_white',
+                  height=500, width=1000,
+                  margin=dict(l=10, r=10, t=30, b=10),
+                  yaxis=dict(autorange = True, fixedrange= False, tickformat=",",),# domain=[0.3, 1]),
                   xaxis=dict(tickformat='%Y-%m-%d', rangeslider=dict(visible=False)),
-                  yaxis2=dict(autorange = True, fixedrange= False, tickformat=",", domain=[0.15, 0.25]),
+                  yaxis2=dict(autorange = True, fixedrange= False, tickformat=",",),# domain=[0.15, 0.25]),
                   xaxis2=dict(tickformat='%Y-%m-%d'),
-                  yaxis3=dict(autorange = True, fixedrange= False, tickformat=",", domain=[0, 0.1]),
-                  xaxis3=dict(tickformat='%Y-%m-%d'))
+                  yaxis3=dict(autorange = True, fixedrange= False, tickformat=",",),# domain=[0, 0.1]),
+                  xaxis3=dict(tickformat='%Y-%m-%d'),
+                  legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.05, borderwidth=1)
+                 )
 
 fig.show()
