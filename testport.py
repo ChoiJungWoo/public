@@ -166,11 +166,26 @@ for num in range(len(zerodays)):
         layer="below", line_width=0,
         row=2, col=1)
 
+riskdata = result.loc[(result.add_value == 0) & (result.add_value.shift(1) == 0),:]
+risk = go.Bar(x=riskdata.index, y=riskdata.value_change,
+              marker_color='black',
+              name='변동성')
+fig.add_trace(risk, row=3, col=1)
+
+riskstd = np.std(result.loc[(result.add_value == 0) & (result.add_value.shift(1) == 0),:].value_change)
+fig.add_hrect(
+    y0=-riskstd, y1=riskstd,
+    fillcolor="yellow", opacity=0.5,
+    layer="below", line_width=0,
+    row=3, col=1)
+
 fig.update_layout(height=500, width=1000,
                   margin=dict(l=10, r=10, t=10, b=10),
-                  yaxis=dict(autorange = True, fixedrange= False, tickformat=",", domain=[0.15, 1]),
+                  yaxis=dict(autorange = True, fixedrange= False, tickformat=",", domain=[0.3, 1]),
                   xaxis=dict(tickformat='%Y-%m-%d', rangeslider=dict(visible=False)),
-                  yaxis2=dict(autorange = True, fixedrange= False, tickformat=",", domain=[0, 0.1]),
-                  xaxis2=dict(tickformat='%Y-%m-%d'))
+                  yaxis2=dict(autorange = True, fixedrange= False, tickformat=",", domain=[0.15, 0.25]),
+                  xaxis2=dict(tickformat='%Y-%m-%d'),
+                  yaxis3=dict(autorange = True, fixedrange= False, tickformat=",", domain=[0, 0.1]),
+                  xaxis3=dict(tickformat='%Y-%m-%d'))
 
 fig.show()
