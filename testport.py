@@ -96,7 +96,7 @@ for num, row in enumerate(result.loc[result.add_value >= 1,:].values):
             fdata['USD/KRW'].loc[fdata['USD/KRW'].index == startindex, 'Close'].values
     tmp['value'] = tmp.구매가 * tmp.구매개수
     value = tmp.value.sum()
-    name = tmp.티커.values[0]
+    name = tmp.티커.values
             
 #     fig.add_annotation(x=startindex,
 #                        y=np.mean(result.loc[startindex,:].values[:4]),
