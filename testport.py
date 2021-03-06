@@ -178,28 +178,29 @@ risk = go.Bar(x=riskdata.index, y=riskdata.value_change,
 fig.add_trace(risk, row=3, col=1)
 
 riskstd = np.std(result.loc[(result.add_value == 0) & (result.add_value.shift(1) == 0),:].value_change)
+riskcenter = np.mean(result.loc[(result.add_value == 0) & (result.add_value.shift(1) == 0),:].value_change)
 fig.add_hrect(
-    y0=-riskstd, y1=riskstd,
+    y0=-riskstd+riskcenter, y1=riskstd+riskcenter,
     fillcolor="yellow", opacity=0.4,
     layer="below", line_width=0,
     row=3, col=1)
 fig.add_hrect(
-    y0=-riskstd*2, y1=-riskstd,
+    y0=-riskstd*2+riskcenter, y1=-riskstd+riskcenter,
     fillcolor="orange", opacity=0.4,
     layer="below", line_width=0,
     row=3, col=1)
 fig.add_hrect(
-    y0=riskstd, y1=riskstd*2,
+    y0=riskstd+riskcenter, y1=riskstd*2+riskcenter,
     fillcolor="orange", opacity=0.4,
     layer="below", line_width=0,
     row=3, col=1)
 fig.add_hrect(
-    y0=-riskstd*3, y1=-riskstd*2,
+    y0=-riskstd*3+riskcenter, y1=-riskstd*2+riskcenter,
     fillcolor="red", opacity=0.4,
     layer="below", line_width=0,
     row=3, col=1)
 fig.add_hrect(
-    y0=riskstd*2, y1=riskstd*3,
+    y0=riskstd*2+riskcenter, y1=riskstd*3+riskcenter,
     fillcolor="red", opacity=0.4,
     layer="below", line_width=0,
     row=3, col=1)
