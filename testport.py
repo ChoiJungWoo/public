@@ -210,6 +210,11 @@ fig.add_hrect(
 #     layer="below", line_width=0,
 #     row=3, col=1)
 
+fig.update_xaxes(
+    rangebreaks=[
+        dict(bounds=["sat", "mon"])
+    ]
+)
 fig.update_layout(template='plotly_white',
                   height=500, width=1000,
                   margin=dict(l=10, r=10, t=30, b=10),
