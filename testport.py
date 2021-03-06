@@ -151,6 +151,21 @@ for num, row in enumerate(result.loc[result.add_value >= 1,:].values):
 line = go.Scatter(x=result.index, y=result.mdd, mode='lines', name='MDD')
 fig.add_trace(line, row=2, col=1)
 
+zerodays = result.loc[((result.mdd == 0) & (result.mdd.shift(1) != 0)) | ((result.mdd != 0) & (result.mdd.shift(1) == 0)),:].index
+for num in range(len(zerodays)):
+    if not num % 2:
+        continue
+    x0 = zerodays[num]
+    if num+1 == len(zerodays):
+        x1 = result.index[-1]
+    else:
+        x1 = zerodays[num+1]
+    fig.add_vrect(
+        x0=x0, x1=x1,
+        fillcolor="LightSalmon", opacity=0.5,
+        layer="below", line_width=0,
+        row=2, col=1)
+
 fig.update_layout(height=500, width=1000,
                   margin=dict(l=10, r=10, t=10, b=10),
                   yaxis=dict(autorange = True, fixedrange= False, tickformat=",", domain=[0.15, 1]),
