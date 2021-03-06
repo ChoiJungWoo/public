@@ -180,9 +180,34 @@ fig.add_trace(risk, row=3, col=1)
 riskstd = np.std(result.loc[(result.add_value == 0) & (result.add_value.shift(1) == 0),:].value_change)
 fig.add_hrect(
     y0=-riskstd, y1=riskstd,
-    fillcolor="yellow", opacity=0.5,
+    fillcolor="yellow", opacity=0.4,
     layer="below", line_width=0,
     row=3, col=1)
+fig.add_hrect(
+    y0=-riskstd*2, y1=-riskstd,
+    fillcolor="orange", opacity=0.4,
+    layer="below", line_width=0,
+    row=3, col=1)
+fig.add_hrect(
+    y0=riskstd, y1=riskstd*2,
+    fillcolor="orange", opacity=0.4,
+    layer="below", line_width=0,
+    row=3, col=1)
+fig.add_hrect(
+    y0=-riskstd*3, y1=-riskstd*2,
+    fillcolor="red", opacity=0.4,
+    layer="below", line_width=0,
+    row=3, col=1)
+fig.add_hrect(
+    y0=riskstd*2, y1=riskstd*3,
+    fillcolor="red", opacity=0.4,
+    layer="below", line_width=0,
+    row=3, col=1)
+# fig.add_hrect(
+#     y0=-riskstd, y1=riskstd,
+#     fillcolor="yellow", opacity=0.5,
+#     layer="below", line_width=0,
+#     row=3, col=1)
 
 fig.update_layout(template='plotly_white',
                   height=500, width=1000,
