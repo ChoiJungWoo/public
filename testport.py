@@ -159,7 +159,7 @@ class bnp:
                 
         self.result = result
     
-    def make_figure(self, mdd=None):
+    def make_figure(self, pm=None, mdd=None):
         # 전체 figure 설정
         fig = make_subplots(rows=4, cols=1, shared_xaxes=True,                 
                             subplot_titles=('포트폴리오','현재 자산 - 추가금','MDD','변동성'),
@@ -250,29 +250,37 @@ class bnp:
             maxcut = maxcut[0]
         except:
             pass
+        if pm == '%':
+            realvalue['value'] = realvalue.value / self.result.value
         realvalue1 = realvalue.loc[realvalue.index <= maxcut, :]
         realvalue2 = realvalue.loc[realvalue.index >= maxcut, :]
         
+        if pm == '%':
+            realtxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}" for x,y in zip(self.result.index, realvalue1.value)]
+        else:
+            realtxt = [f"{x.strftime('%Y-%m-%d')}: {y}" for x,y in zip(self.result.index, realvalue1.value)]
         realine = go.Scatter(x=realvalue1.index,
                              y=realvalue1.value,
                              mode='lines',
                              line=dict(color='indigo'),
                              fill='tozeroy',
                              showlegend=False,
-                             text=[f"{x.strftime('%Y-%m-%d')}: {y}"
-                                   for x,y in zip(self.result.index, realvalue1.value)],
+                             text=realtxt,
                              hovertemplate='%{text}',
                              name='현재자산 - 추가금')
         fig.add_trace(realine, row=rownum, col=1)
         
+        if pm == '%':
+            realmaxtxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}" for x,y in zip(self.result.index, realvalue2.value)]
+        else:
+            realmaxtxt = [f"{x.strftime('%Y-%m-%d')}: {y}" for x,y in zip(self.result.index, realvalue2.value)]
         realine_max = go.Scatter(x=realvalue2.index,
                                  y=realvalue2.value,
                                  mode='lines',
                                  line=dict(color='darkgreen'),
                                  fill='tozeroy',
                                  showlegend=False,
-                                 text=[f"{x.strftime('%Y-%m-%d')}: {y}"
-                                       for x,y in zip(self.result.index, realvalue2.value)],
+                                 text=realmaxtxt,
                                  hovertemplate='%{text}',
                                  name='현재자산 - 추가금')
         fig.add_trace(realine_max, row=rownum, col=1)
@@ -410,17 +418,21 @@ class bnp:
         
         # 전반적 모양새 설정
         if mdd == '%':
-            tfm = "%"
+            mtfm = "%"
         else:
-            tfm = ","
+            mtfm = ","
+        if pm == '%':
+            ptfm = "%"
+        else:
+            ptfm = ","
         fig.update_layout(template='plotly_white',
                           height=500, width=700,
                           margin=dict(l=10, r=10, t=30, b=10),
                           yaxis=dict(autorange = True, showgrid=True, fixedrange= False, tickformat=",",),
                           xaxis=dict(tickformat='%Y-%m-%d', rangeslider=dict(visible=False)),
-                          yaxis2=dict(autorange = True, fixedrange= True, tickformat=",",),
+                          yaxis2=dict(autorange = True, fixedrange= True, tickformat=ptfm,),
                           xaxis2=dict(tickformat='%Y-%m-%d'),
-                          yaxis3=dict(autorange = True, fixedrange= True, tickformat=tfm,),
+                          yaxis3=dict(autorange = True, fixedrange= True, tickformat=mtfm,),
                           xaxis3=dict(tickformat='%Y-%m-%d', showgrid=False),
                           yaxis4=dict(autorange = True, fixedrange= True, tickformat=",",),
                           xaxis4=dict(tickformat='%Y-%m-%d'),
