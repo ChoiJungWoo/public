@@ -4,6 +4,7 @@ import datetime
 import FinanceDataReader as fdr
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
+from dateutil.relativedelta import relativedelta
 
 class bnp:
     def __init__(self):
@@ -158,7 +159,7 @@ class bnp:
                 
         self.result = result
     
-    def make_figure(self):
+    def make_figure(self, mdd=None):
         # 전체 figure 설정
         fig = make_subplots(rows=4, cols=1, shared_xaxes=True,                 
                             subplot_titles=('포트폴리오','현재 자산 - 추가금','MDD','변동성'),
@@ -318,16 +319,22 @@ class bnp:
         rownum += 1
 
         # 3. MDD
-        mdd = go.Scatter(x=self.result.index, 
-                         y=self.result.mdd, 
-                         mode='lines', 
-                         line=dict(color='red'), 
-                         showlegend=False,
-                         text=[f"{x.strftime('%Y-%m-%d')}: {y}"
-                               for x,y in zip(self.result.index, self.result.mdd)],
-                         hovertemplate='%{text}',
-                         name='MDD')
-        fig.add_trace(mdd, row=rownum, col=1)
+        
+        if mdd == '%':
+            mddy = self.result.mdd / self.result.value
+            mddtxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}" for x,y in zip(self.result.index, mddy)]
+        else:
+            mddy = self.result.mdd
+            mddtxt = mddtxt = [f"{x.strftime('%Y-%m-%d')}: {y}" for x,y in zip(self.result.index, mddy)]
+        mddline = go.Scatter(x=self.result.index, 
+                             y=mddy, 
+                             mode='lines', 
+                             line=dict(color='red'), 
+                             showlegend=False,
+                             text=mddtxt,
+                             hovertemplate='%{text}',
+                             name='MDD')
+        fig.add_trace(mddline, row=rownum, col=1)
 
         zerodays = self.result.\
             loc[((self.result.mdd == 0) & \
@@ -402,6 +409,10 @@ class bnp:
 #         )
         
         # 전반적 모양새 설정
+        if mdd == '%':
+            tfm = "%"
+        else:
+            tfm = ","
         fig.update_layout(template='plotly_white',
                           height=500, width=700,
                           margin=dict(l=10, r=10, t=30, b=10),
@@ -409,7 +420,7 @@ class bnp:
                           xaxis=dict(tickformat='%Y-%m-%d', rangeslider=dict(visible=False)),
                           yaxis2=dict(autorange = True, fixedrange= True, tickformat=",",),
                           xaxis2=dict(tickformat='%Y-%m-%d'),
-                          yaxis3=dict(autorange = True, fixedrange= True, tickformat=",",),
+                          yaxis3=dict(autorange = True, fixedrange= True, tickformat=tfm,),
                           xaxis3=dict(tickformat='%Y-%m-%d', showgrid=False),
                           yaxis4=dict(autorange = True, fixedrange= True, tickformat=",",),
                           xaxis4=dict(tickformat='%Y-%m-%d'),
