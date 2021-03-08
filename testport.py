@@ -5,6 +5,7 @@ import FinanceDataReader as fdr
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 from dateutil.relativedelta import relativedelta
+import copy
 
 class bnp:
     def __init__(self):
@@ -21,7 +22,7 @@ class bnp:
     
     @property
     def data(self):
-        return self.__data
+        return copy.deepcopy(self.__data)
         
     @data.setter
     def data(self, df):
@@ -30,7 +31,7 @@ class bnp:
     
     @property
     def fdata(self):
-        return self.__fdata
+        return copy.deepcopy(self.__fdata)
     
     @fdata.setter
     def fdata(self, dt):
@@ -38,7 +39,7 @@ class bnp:
     
     @property
     def rdata(self):
-        return self.__rdata
+        return copy.deepcopy(self.__rdata)
     
     @rdata.setter
     def rdata(self, dt):
@@ -46,7 +47,7 @@ class bnp:
         
     @property
     def result(self):
-        return self.__result
+        return copy.deepcopy(self.__result)
     
     @result.setter
     def result(self, dt):
