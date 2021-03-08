@@ -243,7 +243,7 @@ class bnp:
             row_v = row[2]
             if row[-1] == '달러':
                 row_v = row_v * self.fdata['USD/KRW'].loc[self.fdata['USD/KRW'].index == row[1], 'Close']
-            realvalue.loc[realvalue.index >= row[1],:] = realvalue.loc[realvalue.index >= row[1],:] - row_v
+            realvalue.loc[realvalue.index >= row[1],:] = realvalue.loc[realvalue.index >= row[1],:] - row_v*row[-2]
         maxcut = realvalue.loc[realvalue.value == realvalue.value.max(),'value'].index
         try:
             maxcut = maxcut[0]
