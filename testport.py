@@ -201,18 +201,23 @@ class bnp:
         #                        showarrow=True,
         #                        arrowhead=2,
         #                        row=1, col=1)
-            if not num:
-                continue
-            legend = True
-            if num > 1:
+            
+
+            if num:
+                x0 = self.result.loc[self.result.index < startindex,:].index[-1]
+                y0 = np.mean(self.result.loc[self.result.index < startindex,:].values[-1][:4])
                 legend = False
-            color1, color2 = 'RoyalBlue', 'LightSkyBlue'
-            if np.mean(self.result.loc[startindex,:].values[:4]) < \
-                np.mean(self.result.loc[self.result.index < startindex,:].values[-1][:4]):
-                color1, color2 = 'darkred', 'lightsalmon'
-            x0 = self.result.loc[self.result.index < startindex,:].index[-1]
-            x1 = startindex
-            y0 = np.mean(self.result.loc[self.result.index < startindex,:].values[-1][:4])
+                if np.mean(self.result.loc[startindex,:].values[:4]) < \
+                    np.mean(self.result.loc[self.result.index < startindex,:].values[-1][:4]):
+                    color1, color2 = 'darkred', 'lightsalmon'
+                else:
+                    color1, color2 = 'RoyalBlue', 'LightSkyBlue'
+            else:
+                x0 = startindex - relativedelta(days=1)
+                y0 = 0
+                legend = True
+                color1, color2 = 'RoyalBlue', 'LightSkyBlue'
+            x1 = startindex            
             y1 = np.mean(self.result.loc[startindex,:].values[:4])
         #     fig.add_shape(type="rect",
         #                   x0=x0, y0=y0, x1=x1, y1=y1,
@@ -235,6 +240,8 @@ class bnp:
                            text=f"add: {name} 약{round(int(value),-1):,}"
                 ), row=rownum, col=1
             )
+            
+        fig.add_hrect(y0=0, y1=0, line_width=2, fillcolor="black", opacity=1, row=rownum, col=1)
         
         rownum += 1
         
@@ -245,13 +252,13 @@ class bnp:
             if row[-1] == '달러':
                 row_v = row_v * self.fdata['USD/KRW'].loc[self.fdata['USD/KRW'].index == row[1], 'Close']
             realvalue.loc[realvalue.index >= row[1],:] = realvalue.loc[realvalue.index >= row[1],:] - row_v*row[-2]
+        if pm == '%':
+            realvalue['value'] = realvalue.value / self.result.value
         maxcut = realvalue.loc[realvalue.value == realvalue.value.max(),'value'].index
         try:
             maxcut = maxcut[0]
         except:
             pass
-        if pm == '%':
-            realvalue['value'] = realvalue.value / self.result.value
         realvalue1 = realvalue.loc[realvalue.index <= maxcut, :]
         realvalue2 = realvalue.loc[realvalue.index >= maxcut, :]
         
@@ -430,13 +437,13 @@ class bnp:
                           margin=dict(l=10, r=10, t=30, b=10),
                           yaxis=dict(autorange = True, showgrid=True, fixedrange= False, tickformat=",",),
                           xaxis=dict(tickformat='%Y-%m-%d', rangeslider=dict(visible=False)),
-                          yaxis2=dict(autorange = True, fixedrange= True, tickformat=ptfm,),
+                          yaxis2=dict(autorange = True, fixedrange= True, tickformat=ptfm),
                           xaxis2=dict(tickformat='%Y-%m-%d'),
-                          yaxis3=dict(autorange = True, fixedrange= True, tickformat=mtfm,),
+                          yaxis3=dict(autorange = True, fixedrange= True, tickformat=mtfm),
                           xaxis3=dict(tickformat='%Y-%m-%d', showgrid=False),
-                          yaxis4=dict(autorange = True, fixedrange= True, tickformat=",",),
+                          yaxis4=dict(autorange = True, fixedrange= True, tickformat=","),
                           xaxis4=dict(tickformat='%Y-%m-%d'),
-                          legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.05, borderwidth=1)
+                          legend=dict(borderwidth=1)
                          )
         self.fig = fig
         return self.fig
