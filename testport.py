@@ -386,31 +386,38 @@ class bnp:
 
         riskstd = np.std(self.result.loc[self.result.add_value == 0,:].value_change)
         riskcenter = np.mean(self.result.loc[self.result.add_value == 0,:].value_change)
-        fig.add_hrect(
-            y0=-riskstd+riskcenter, y1=riskstd+riskcenter,
-            fillcolor="yellow", opacity=0.4,
-            layer="below", line_width=0,
-            row=rownum, col=1)
-        fig.add_hrect(
-            y0=-riskstd*2+riskcenter, y1=-riskstd+riskcenter,
-            fillcolor="orange", opacity=0.4,
-            layer="below", line_width=0,
-            row=rownum, col=1)
-        fig.add_hrect(
-            y0=riskstd+riskcenter, y1=riskstd*2+riskcenter,
-            fillcolor="orange", opacity=0.4,
-            layer="below", line_width=0,
-            row=rownum, col=1)
-        fig.add_hrect(
-            y0=-riskstd*3+riskcenter, y1=-riskstd*2+riskcenter,
-            fillcolor="red", opacity=0.4,
-            layer="below", line_width=0,
-            row=rownum, col=1)
-        fig.add_hrect(
-            y0=riskstd*2+riskcenter, y1=riskstd*3+riskcenter,
-            fillcolor="red", opacity=0.4,
-            layer="below", line_width=0,
-            row=rownum, col=1)
+        for item, color in zip([[-1,1], [-2,-1], [1,2], [-3,-2], [2,3]],
+                               ['yellow','orange','orange','red','red']):
+            fig.add_hrect(
+                y0=item[0]*riskstd+riskcenter, y1=item[1]*riskstd+riskcenter,
+                fillcolor=color, opacity=0.4,
+                layer="below", line_width=0,
+                row=rownum, col=1)
+#         fig.add_hrect(
+#             y0=-riskstd+riskcenter, y1=riskstd+riskcenter,
+#             fillcolor="yellow", opacity=0.4,
+#             layer="below", line_width=0,
+#             row=rownum, col=1)
+#         fig.add_hrect(
+#             y0=-riskstd*2+riskcenter, y1=-riskstd+riskcenter,
+#             fillcolor="orange", opacity=0.4,
+#             layer="below", line_width=0,
+#             row=rownum, col=1)
+#         fig.add_hrect(
+#             y0=riskstd+riskcenter, y1=riskstd*2+riskcenter,
+#             fillcolor="orange", opacity=0.4,
+#             layer="below", line_width=0,
+#             row=rownum, col=1)
+#         fig.add_hrect(
+#             y0=-riskstd*3+riskcenter, y1=-riskstd*2+riskcenter,
+#             fillcolor="red", opacity=0.4,
+#             layer="below", line_width=0,
+#             row=rownum, col=1)
+#         fig.add_hrect(
+#             y0=riskstd*2+riskcenter, y1=riskstd*3+riskcenter,
+#             fillcolor="red", opacity=0.4,
+#             layer="below", line_width=0,
+#             row=rownum, col=1)
         # fig.add_hrect(
         #     y0=-riskstd, y1=riskstd,
         #     fillcolor="yellow", opacity=0.5,
@@ -442,7 +449,7 @@ class bnp:
                           xaxis2=dict(tickformat='%Y-%m-%d'),
                           yaxis3=dict(autorange = True, fixedrange= True, tickformat=mtfm),
                           xaxis3=dict(tickformat='%Y-%m-%d', showgrid=False),
-                          yaxis4=dict(autorange = True, fixedrange= True, tickformat=","),
+                          yaxis4=dict(autorange = True, fixedrange= True, tickformat=",", showgrid=False),
                           xaxis4=dict(tickformat='%Y-%m-%d'),
                           legend=dict(borderwidth=1)
                          )
