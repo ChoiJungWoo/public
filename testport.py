@@ -160,7 +160,10 @@ class bnp:
                 
         self.result = result
     
-    def make_figure(self, pm=None, mdd=None):
+    def make_figure(self, pm=''):
+        
+        pm = re.sub('[^%]{1}', ',', pm[:min(3,len(pm))] + ',,,'[min(3,len(pm)):])
+        
         # 전체 figure 설정
         fig = make_subplots(rows=4, cols=1, shared_xaxes=True,                 
                             subplot_titles=('포트폴리오','현재 자산 - 추가금','MDD','변동성'),
@@ -253,7 +256,7 @@ class bnp:
             if row[-1] == '달러':
                 row_v = row_v * self.fdata['USD/KRW'].loc[self.fdata['USD/KRW'].index == row[1], 'Close']
             realvalue.loc[realvalue.index >= row[1],:] = realvalue.loc[realvalue.index >= row[1],:] - row_v*row[-2]
-        if pm == '%':
+        if pm[0] == '%':
             realvalue['value'] = realvalue.value / self.result.value
         maxcut = realvalue.loc[realvalue.value == realvalue.value.max(),'value'].index
         try:
@@ -263,7 +266,7 @@ class bnp:
         realvalue1 = realvalue.loc[realvalue.index <= maxcut, :]
         realvalue2 = realvalue.loc[realvalue.index >= maxcut, :]
         
-        if pm == '%':
+        if pm[0] == '%':
             realtxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}" for x,y in zip(self.result.index, realvalue1.value)]
         else:
             realtxt = [f"{x.strftime('%Y-%m-%d')}: {y}" for x,y in zip(self.result.index, realvalue1.value)]
@@ -278,7 +281,7 @@ class bnp:
                              name='현재자산 - 추가금')
         fig.add_trace(realine, row=rownum, col=1)
         
-        if pm == '%':
+        if pm[0] == '%':
             realmaxtxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}" for x,y in zip(self.result.index, realvalue2.value)]
         else:
             realmaxtxt = [f"{x.strftime('%Y-%m-%d')}: {y}" for x,y in zip(self.result.index, realvalue2.value)]
@@ -336,7 +339,7 @@ class bnp:
 
         # 3. MDD
         
-        if mdd == '%':
+        if pm[1] == '%':
             mddy = self.result.mdd / self.result.value
             mddtxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}" for x,y in zip(self.result.index, mddy)]
         else:
@@ -375,11 +378,14 @@ class bnp:
 
         # 4. 변동성
         riskdata = self.result.loc[self.result.add_value == 0,:]
+        if pm[2] == '%':
+            risktxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}" for x,y in zip(riskdata.index, riskdata.value_change)]
+        else:
+            risktxt = [f"{x.strftime('%Y-%m-%d')}: {round(y, 3)}" for x,y in zip(riskdata.index, riskdata.value_change)]
         risk = go.Bar(x=riskdata.index, y=riskdata.value_change,
                       marker_color='black',
                       showlegend=False,
-                      text=[f"{x.strftime('%Y-%m-%d')}: {round(y, 3)}"
-                            for x,y in zip(riskdata.index, riskdata.value_change)],
+                      text=risktxt,
                       hovertemplate='%{text}',
                       name='변동성')
         fig.add_trace(risk, row=rownum, col=1)
@@ -432,24 +438,24 @@ class bnp:
 #         )
         
         # 전반적 모양새 설정
-        if mdd == '%':
-            mtfm = "%"
-        else:
-            mtfm = ","
-        if pm == '%':
-            ptfm = "%"
-        else:
-            ptfm = ","
+#         if mdd == '%':
+#             mtfm = "%"
+#         else:
+#             mtfm = ","
+#         if pm == '%':
+#             ptfm = "%"
+#         else:
+#             ptfm = ","
         fig.update_layout(template='plotly_white',
                           height=500, width=700,
                           margin=dict(l=10, r=10, t=30, b=10),
                           yaxis=dict(autorange = True, showgrid=True, fixedrange= False, tickformat=",",),
                           xaxis=dict(tickformat='%Y-%m-%d', rangeslider=dict(visible=False)),
-                          yaxis2=dict(autorange = True, fixedrange= True, tickformat=ptfm),
+                          yaxis2=dict(autorange = True, fixedrange= True, tickformat=pm[0]),
                           xaxis2=dict(tickformat='%Y-%m-%d'),
-                          yaxis3=dict(autorange = True, fixedrange= True, tickformat=mtfm),
+                          yaxis3=dict(autorange = True, fixedrange= True, tickformat=pm[1]),
                           xaxis3=dict(tickformat='%Y-%m-%d', showgrid=False),
-                          yaxis4=dict(autorange = True, fixedrange= True, tickformat=",", showgrid=False),
+                          yaxis4=dict(autorange = True, fixedrange= True, tickformat=pm[2], showgrid=False),
                           xaxis4=dict(tickformat='%Y-%m-%d'),
                           legend=dict(borderwidth=1)
                          )
