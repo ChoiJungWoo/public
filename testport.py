@@ -6,6 +6,7 @@ from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 from dateutil.relativedelta import relativedelta
 import copy
+import re
 
 class bnp:
     def __init__(self):
