@@ -152,12 +152,13 @@ class bnp:
         result.loc[:,result.columns[:4]] = result.loc[:,result.columns[:4]].round(-1)
         result.loc[result.add_value > 0, 'value_change'] = 0
         # MDD계산
-        result['mdd'] = 0
-        for num in range(1,result.shape[0]):
-            result.loc[result.index[num:], 'mdd'] = result.loc[result.index[num:], 'mdd'] +\
-                                                    result.values[num][-4] - result.values[num-1][-4]
-            if result.loc[result.index[num], 'mdd'] > 0:
-                result.loc[result.index[num:], 'mdd'] = 0
+        result['mdd'] = (result.value / result.value.cummax() - 1).round(2)
+#         result['mdd'] = 0
+#         for num in range(1,result.shape[0]):
+#             result.loc[result.index[num:], 'mdd'] = result.loc[result.index[num:], 'mdd'] +\
+#                                                     result.values[num][-4] - result.values[num-1][-4]
+#             if result.loc[result.index[num], 'mdd'] > 0:
+#                 result.loc[result.index[num:], 'mdd'] = 0
                 
         self.result = result
         
@@ -351,10 +352,10 @@ class bnp:
         # 3. MDD
         
         if pm[1] == '%':
-            mddy = self.result.mdd / self.result.value
+            mddy = self.result.mdd
             mddtxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}" for x,y in zip(self.result.index, mddy)]
         else:
-            mddy = self.result.mdd
+            mddy = (self.result.mdd * result.value).round(-1).astype('int')
             mddtxt = mddtxt = [f"{x.strftime('%Y-%m-%d')}: {y}" for x,y in zip(self.result.index, mddy)]
         mddline = go.Scatter(x=self.result.index, 
                              y=mddy, 
@@ -449,14 +450,10 @@ class bnp:
 #         )
         
         # 전반적 모양새 설정
-#         if mdd == '%':
-#             mtfm = "%"
-#         else:
-#             mtfm = ","
-#         if pm == '%':
-#             ptfm = "%"
-#         else:
-#             ptfm = ","
+#         def pord(pms):
+#             return [',' if x == ',' else '%' for x in pms[:1]]+[',.2f' if x == ',' else '%' for x in pms[1:]]
+#         pm = pord(pm)
+        
         fig.update_layout(template='plotly_white',
                           height=500, width=700,
                           margin=dict(l=10, r=10, t=30, b=10),
