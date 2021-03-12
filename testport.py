@@ -160,8 +160,16 @@ class bnp:
                 result.loc[result.index[num:], 'mdd'] = 0
                 
         self.result = result
+        
+        data = self.data
+        data.구매일 = data.구매일.dt.strftime('%Y%m%d')
+        self.data = data
     
     def make_figure(self, pm=''):
+        
+        data = self.data
+        data.구매일 = pd.to_datetime(data.구매일, format='%Y%m%d')
+        self.data = data
         
         pm = re.sub('[^%]{1}', ',', pm[:min(3,len(pm))] + ',,,'[min(3,len(pm)):])
         
@@ -461,10 +469,15 @@ class bnp:
                           legend=dict(borderwidth=1)
                          )
         self.fig = fig
+        
+        data = self.data
+        data.구매일 = data.구매일.dt.strftime('%Y%m%d')
+        self.data = data
+        
         return self.fig
     
     def to_csv(self):
         data = self.data.copy()
-        data['구매일'] = [int(x.strftime('%Y%m%d')) for x in data.구매일]
+#         data['구매일'] = [int(x.strftime('%Y%m%d')) for x in data.구매일]
         data.to_csv('bnp.csv', index=False)
         return data
