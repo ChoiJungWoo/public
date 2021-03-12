@@ -195,7 +195,8 @@ class bnp:
             tmp = self.data.copy().loc[self.data.구매일 == startindex,:]
             if '달러' in tmp.화폐.values:
                 tmp.loc[tmp.화폐 == '달러','구매가'] = tmp.loc[tmp.화폐 == '달러','구매가'].values * \
-                    self.fdata['USD/KRW'].loc[self.fdata['USD/KRW'].index == startindex, 'Close'].values
+                    self.fdata['USD/KRW'].reindex(self.result.index).fillna(method='ffill').\
+                        loc[self.fdata['USD/KRW'].index == startindex, 'Close'].values[0]
             tmp['value'] = tmp.구매가 * tmp.구매개수
             value = tmp.value.sum()
             name = tmp.티커.values
@@ -263,7 +264,8 @@ class bnp:
         for row in self.data.values:
             row_v = row[2]
             if row[-1] == '달러':
-                row_v = row_v * self.fdata['USD/KRW'].loc[self.fdata['USD/KRW'].index == row[1], 'Close']
+                row_v = row_v * self.fdata['USD/KRW'].reindex(self.result.index).fillna(method='ffill').\
+                                    loc[self.fdata['USD/KRW'].index == row[1], 'Close'].values[0]
             realvalue.loc[realvalue.index >= row[1],:] = realvalue.loc[realvalue.index >= row[1],:] - row_v*row[-2]
         if pm[0] == '%':
             realvalue['value'] = realvalue.value / self.result.value
