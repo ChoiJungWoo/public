@@ -56,7 +56,7 @@ class bnp:
  
     def add_row(self, row):
         tmp = pd.DataFrame([row], columns=['티커', '구매일', '구매가', '구매개수', '화폐'])
-        self.data = self.data.append(tmp)
+        self.data = self.data.append(tmp).reset_index(drop=True)
     
     def make_result(self):
         fdata = dict()
