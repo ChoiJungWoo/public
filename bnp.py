@@ -369,22 +369,33 @@ class bnp:
 
         zerodays = self.result.\
             loc[((self.result.mdd == 0) & \
-                 (self.result.mdd.shift(1) != 0)) | \
-                ((self.result.mdd != 0) & \
-                 (self.result.mdd.shift(1) == 0)),:].index
-        for num in range(len(zerodays)):
-            if not num % 2:
-                continue
-            x0 = zerodays[num] - relativedelta(days=1)
-            if num+1 == len(zerodays):
-                x1 = self.result.index[-1]
-            else:
-                x1 = zerodays[num+1]
-            fig.add_vrect(
-                x0=x0, x1=x1,
-                fillcolor="LightSalmon", opacity=0.5,
-                layer="below", line_width=0,
-                row=rownum, col=1)
+                 (self.result.mdd.shift(-1) != 0)),:].index
+        if len(zerodays) > 0:
+            for x0 in zerodays:
+                zerotmp = self.result.loc[self.result.index > x0, 'mdd']
+                nonzero = zerotmp.loc[(zerotmp == 0) & (zerotmp.shift(1) != 0)]
+                if len(nonzero) > 0:
+                    x1 = nonzero.index[0]
+                else:
+                    x1 = self.result.index[-1]
+                fig.add_vrect(
+                    x0=x0, x1=x1,
+                    fillcolor="LightSalmon", opacity=0.5,
+                    layer="below", line_width=0,
+                    row=rownum, col=1)
+#         for num in range(len(zerodays)):
+#             if num % 2:
+#                 continue
+#             x0 = zerodays[num]
+#             if num+1 == len(zerodays):
+#                 x1 = self.result.index[-1]
+#             else:
+#                 x1 = zerodays[num+1]
+#             fig.add_vrect(
+#                 x0=x0, x1=x1,
+#                 fillcolor="LightSalmon", opacity=0.5,
+#                 layer="below", line_width=0,
+#                 row=rownum, col=1)
             
         rownum += 1
 
