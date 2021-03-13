@@ -1,3 +1,9 @@
+# Needs
+### pandas
+### numpy
+### FinanceDataReader
+### plotly
+
 ```python
 from bnp import bnp
 import pandas as pd
