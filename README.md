@@ -280,6 +280,7 @@ test.make_figure()
 test.fig.update_layout(width=1000, height=1000)
 test.fig.show()
 ```
+![Alt text](https://github.com/phi-friday/public/blob/main/output_9_1.png)
 
 # make graph as percent
 
