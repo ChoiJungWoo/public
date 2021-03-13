@@ -355,7 +355,7 @@ class bnp:
             mddy = self.result.mdd
             mddtxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}" for x,y in zip(self.result.index, mddy)]
         else:
-            mddy = (self.result.mdd * result.value).round(-1).astype('int')
+            mddy = (self.result.mdd * self.result.value).round(-1).astype('int')
             mddtxt = mddtxt = [f"{x.strftime('%Y-%m-%d')}: {y}" for x,y in zip(self.result.index, mddy)]
         mddline = go.Scatter(x=self.result.index, 
                              y=mddy, 
