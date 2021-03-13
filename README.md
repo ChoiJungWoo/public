@@ -290,10 +290,11 @@ test.make_figure(pm='%%%')
 test.fig.update_layout(width=1000, height=1000)
 test.fig.show()
 ```
-
+![Alt text](https://github.com/phi-friday/public/blob/main/output_11_0.png)
 
 ```python
 test.make_figure(pm=',,%')
 test.fig.update_layout(width=1000, height=1000)
 test.fig.show()
 ```
+![Alt text](https://github.com/phi-friday/public/blob/main/output_12_0.png)
