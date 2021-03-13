@@ -22,6 +22,7 @@ test = bnp()
 
 
 ```python
+# not necessary
 test.data = pd.read_csv('bnp.csv')
 test.data
 ```
