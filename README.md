@@ -281,7 +281,7 @@ test.make_figure()
 test.fig.update_layout(width=1000, height=1000)
 test.fig.show()
 ```
-![Alt text](https://github.com/phi-friday/public/blob/main/output_9_1.png)
+![Alt text](https://github.com/phi-friday/public/blob/main/output1.png)
 
 # make graph as percent
 
@@ -291,11 +291,11 @@ test.make_figure(pm='%%%')
 test.fig.update_layout(width=1000, height=1000)
 test.fig.show()
 ```
-![Alt text](https://github.com/phi-friday/public/blob/main/output_11_0.png)
+![Alt text](https://github.com/phi-friday/public/blob/main/output2.png)
 
 ```python
 test.make_figure(pm=',,%')
 test.fig.update_layout(width=1000, height=1000)
 test.fig.show()
 ```
-![Alt text](https://github.com/phi-friday/public/blob/main/output_12_0.png)
+![Alt text](https://github.com/phi-friday/public/blob/main/output3.png)
