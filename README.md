@@ -4,6 +4,8 @@
 	> FinanceDataReader
 	> plotly
 
+# import bnp.py and pandas
+
 ```python
 from bnp import bnp
 import pandas as pd
