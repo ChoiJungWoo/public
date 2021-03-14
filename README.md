@@ -1,3 +1,7 @@
+<div class='notebook-embedded'>
+{% iframe https://nbviewer.jupyter.org/gist/phi-friday/c5a8afadcbf9e8384d9dbcd05c5722d0 100% 100% %}
+</div>
+
 # Needs
 	> pandas
 	> numpy
