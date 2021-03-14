@@ -3,6 +3,7 @@
 	> numpy
 	> FinanceDataReader
 	> plotly
+	> pandas_datareader
 
 # import bnp.py and pandas
 
@@ -299,3 +300,13 @@ test.fig.update_layout(width=1000, height=1000)
 test.fig.show()
 ```
 ![Alt text](https://github.com/phi-friday/public/blob/main/output3.png)
+
+# make benchmark
+### (slow)
+
+```python
+test.make_bench()
+test.make_figure()
+test.fig.update_layout(width=1000, height=1000)
+test.fig.show()
+```
