@@ -316,3 +316,8 @@ test.fig.show()
 
 	> click legend
 ![Alt text](https://github.com/phi-friday/public/blob/main/output5.png)
+
+# add manual benchmark
+```python
+test.bench['manual_bench_name'] = [['spy', 'shy'], [9, 1]] # or .9, .1 or 4.5, .5 etc...
+```
