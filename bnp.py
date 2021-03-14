@@ -5,11 +5,10 @@ import FinanceDataReader as fdr
 from pandas_datareader import data as dtread
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
+import plotly.express as px
 from dateutil.relativedelta import relativedelta
 import copy
 import re
-
-
 
 class bnp:
     def __init__(self):
@@ -204,6 +203,8 @@ class bnp:
     
     def make_figure(self, pm=''):
         
+        benchcolor = [x for n,x in enumerate(px.colors.qualitative.Dark24) if n not in [1,2,3,4,7,8,10,11,12,20,23]]
+        
         data = self.data
         data.구매일 = pd.to_datetime(data.구매일, format='%Y%m%d')
         self.data = data
@@ -296,14 +297,14 @@ class bnp:
         
         # 1-2. 벤치마크
         if self.rbench:
-            for item in self.rbench:
+            for num, item in enumerate(self.rbench):
                 benchtxt = [f"{x.strftime('%Y-%m-%d')}: {int(round(y,-1)):,}"
                             for x,y in zip(item.index, item.values)]
                 fig.add_trace(
                     go.Scatter(x=item.index,
                                y=item.values,
                                mode='lines',
-                               line=dict(width=2),
+                               line=dict(width=2, color=benchcolor[num]),
                                name=item.name,
                                legendgroup=item.name,
                                visible='legendonly',
@@ -384,7 +385,7 @@ class bnp:
         fig.add_trace(realine_max, row=rownum, col=1)
         
         if self.rbench:
-            for item in realbench:
+            for num, item in enumerate(realbench):
                 if pm[0] == '%':
                     benchtxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}" 
                                for x,y in zip(item.index, item.values)]
@@ -394,6 +395,7 @@ class bnp:
                 fig.add_trace(go.Scatter(x=item.index,
                                          y=item.values,
                                          mode='lines',
+                                         line=dict(color=benchcolor[num]),
                                          name=item.name,
                                          legendgroup=item.name,
                                          visible='legendonly',
@@ -492,7 +494,7 @@ class bnp:
 #                 row=rownum, col=1)
 
         if self.rbench:
-            for item in self.rbench:
+            for num, item in enumerate(self.rbench):
                 mddbench = (item / item.cummax() - 1).round(4)
                 if pm[1] == '%':
                     benchtxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}" for x,y in zip(item.index, mddbench)]
@@ -502,6 +504,7 @@ class bnp:
                 fig.add_trace(go.Scatter(x=mddbench.index,
                                          y=mddbench.values,
                                          mode='lines',
+                                         line=dict(color=benchcolor[num]),
                                          name=item.name,
                                          legendgroup=item.name,
                                          visible='legendonly',
