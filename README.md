@@ -315,4 +315,4 @@ test.fig.show()
 ![Alt text](https://github.com/phi-friday/public/blob/main/output4.png)
 
 	> click legend
-![Alt text](https://github.com/phi-friday/public/blob/main/output4.png)
+![Alt text](https://github.com/phi-friday/public/blob/main/output5.png)
