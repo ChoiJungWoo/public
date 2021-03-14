@@ -167,7 +167,7 @@ class bnp:
         result.loc[:,result.columns[:4]] = result.loc[:,result.columns[:4]].round(-1)
         result.loc[result.add_value > 0, 'value_change'] = 0
         # MDD계산
-        result['mdd'] = (result.value / result.value.cummax() - 1).round(2)
+        result['mdd'] = (result.value / result.value.cummax() - 1).round(4)
 #         result['mdd'] = 0
 #         for num in range(1,result.shape[0]):
 #             result.loc[result.index[num:], 'mdd'] = result.loc[result.index[num:], 'mdd'] +\
@@ -297,13 +297,18 @@ class bnp:
         # 1-2. 벤치마크
         if self.rbench:
             for item in self.rbench:
+                benchtxt = [f"{x.strftime('%Y-%m-%d')}: {int(round(y,-1)):,}"
+                            for x,y in zip(item.index, item.values)]
                 fig.add_trace(
                     go.Scatter(x=item.index,
                                y=item.values,
                                mode='lines',
                                line=dict(width=2),
                                name=item.name,
-                               visible='legendonly'
+                               legendgroup=item.name,
+                               visible='legendonly',
+                               text=benchtxt,
+                               hovertemplate='%{text}'
                     ), row=rownum, col=1)
             
         
@@ -311,6 +316,10 @@ class bnp:
         
         # 2. 현재자산 - 추가금
         realvalue = self.result.copy().value.to_frame()
+        if self.rbench:
+            realbench = []
+            for item in self.rbench:
+                realbench.append(item.copy())
         for row in self.data.values:
             row_v = row[2]
             if row[-1] == '달러':
@@ -318,8 +327,20 @@ class bnp:
                                     loc[self.fdata['USD/KRW'].index == row[1], 'Close'].values[0]
             realvalue.loc[realvalue.index >= row[1],:] = \
                 realvalue.loc[realvalue.index >= row[1],:] - row_v*row[-2]
+            if self.rbench:
+                for item in realbench:
+                    if item.index[0] > row[1]:
+                        break
+                    realbench = realbench[1:]
+                    item.loc[item.index >= row[1]] = \
+                        item.loc[item.index >= row[1]] - row_v*row[-2]
+                    realbench.append(item)
         if pm[0] == '%':
             realvalue['value'] = realvalue.value / self.result.value
+            if self.rbench:
+                for item, origin in zip(realbench, self.rbench):
+                    realbench = realbench[1:]
+                    realbench.append(item / origin)
         maxcut = realvalue.loc[realvalue.value == realvalue.value.max(),'value'].index
         try:
             maxcut = maxcut[0]
@@ -332,7 +353,7 @@ class bnp:
             realtxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}" 
                        for x,y in zip(self.result.index, realvalue1.value)]
         else:
-            realtxt = [f"{x.strftime('%Y-%m-%d')}: {y}" 
+            realtxt = [f"{x.strftime('%Y-%m-%d')}: {int(round(y,-1)):,}" 
                        for x,y in zip(self.result.index, realvalue1.value)]
         realine = go.Scatter(x=realvalue1.index,
                              y=realvalue1.value,
@@ -349,7 +370,7 @@ class bnp:
             realmaxtxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}"
                           for x,y in zip(self.result.index, realvalue2.value)]
         else:
-            realmaxtxt = [f"{x.strftime('%Y-%m-%d')}: {y}" 
+            realmaxtxt = [f"{x.strftime('%Y-%m-%d')}: {int(round(y,-1)):,}" 
                           for x,y in zip(self.result.index, realvalue2.value)]
         realine_max = go.Scatter(x=realvalue2.index,
                                  y=realvalue2.value,
@@ -361,6 +382,25 @@ class bnp:
                                  hovertemplate='%{text}',
                                  name='현재자산 - 추가금')
         fig.add_trace(realine_max, row=rownum, col=1)
+        
+        if self.rbench:
+            for item in realbench:
+                if pm[0] == '%':
+                    benchtxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}" 
+                               for x,y in zip(item.index, item.values)]
+                else:
+                    benchtxt = [f"{x.strftime('%Y-%m-%d')}: {int(round(y,-1)):,}" 
+                               for x,y in zip(item.index, item.values)]
+                fig.add_trace(go.Scatter(x=item.index,
+                                         y=item.values,
+                                         mode='lines',
+                                         name=item.name,
+                                         legendgroup=item.name,
+                                         visible='legendonly',
+                                         showlegend=False,
+                                         text=benchtxt,
+                                         hovertemplate='%{text}'
+                ), row=rownum, col=1)
         
 #         zeroline = go.Scatter(x=[realvalue1.index[0], realvalue1.index[-1]],
 #                               y=[0,0],
@@ -410,7 +450,7 @@ class bnp:
             mddtxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}" for x,y in zip(self.result.index, mddy)]
         else:
             mddy = (self.result.mdd * self.result.value).round(-1).astype('int')
-            mddtxt = mddtxt = [f"{x.strftime('%Y-%m-%d')}: {y}" for x,y in zip(self.result.index, mddy)]
+            mddtxt = mddtxt = [f"{x.strftime('%Y-%m-%d')}: {y:,}" for x,y in zip(self.result.index, mddy)]
         mddline = go.Scatter(x=self.result.index, 
                              y=mddy, 
                              mode='lines', 
@@ -450,6 +490,25 @@ class bnp:
 #                 fillcolor="LightSalmon", opacity=0.5,
 #                 layer="below", line_width=0,
 #                 row=rownum, col=1)
+
+        if self.rbench:
+            for item in self.rbench:
+                mddbench = (item / item.cummax() - 1).round(4)
+                if pm[1] == '%':
+                    benchtxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}" for x,y in zip(item.index, mddbench)]
+                else:
+                    mddbench = (mddbench * item).round(-1).astype('int')
+                    benchtxt = mddtxt = [f"{x.strftime('%Y-%m-%d')}: {y:,}" for x,y in zip(item.index, mddbench)]
+                fig.add_trace(go.Scatter(x=mddbench.index,
+                                         y=mddbench.values,
+                                         mode='lines',
+                                         name=item.name,
+                                         legendgroup=item.name,
+                                         visible='legendonly',
+                                         showlegend=False,
+                                         text=benchtxt,
+                                         hovertemplate='%{text}'
+                ), row=rownum, col=1)
             
         rownum += 1
 
@@ -463,6 +522,7 @@ class bnp:
                        for x,y in zip(riskdata.index, riskdata.value_change)]
         risk = go.Bar(x=riskdata.index, y=riskdata.value_change,
                       marker_color='black',
+                      marker_line_width=0,
                       showlegend=False,
                       text=risktxt,
                       hovertemplate='%{text}',
