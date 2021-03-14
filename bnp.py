@@ -2,11 +2,14 @@ import pandas as pd
 import numpy as np
 import datetime
 import FinanceDataReader as fdr
+from pandas_datareader import data as dtread
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 from dateutil.relativedelta import relativedelta
 import copy
 import re
+
+
 
 class bnp:
     def __init__(self):
@@ -20,6 +23,13 @@ class bnp:
         self.__result = None
         # 그래프
         self.fig = None
+        # 벤치용 포폴
+        self.bench = dict(
+            영구포폴 = (('vti','tlt','GC=F','^IRX'),(.25,.25,.25,.25)),
+            올웨더 = (('vti','tlt','ief','GC=F','CL=F'),(.3,.4,.15,.075,.075)),
+            황금나비 = (('vti','ijs','tlt','shy','GC=F'),(.2,.2,.2,.2,.2))
+        )
+        self.__rbench = []
     
     @property
     def data(self):
@@ -27,32 +37,36 @@ class bnp:
         
     @data.setter
     def data(self, df):
-        data = df.astype(dict(티커='str', 구매가='float', 화폐='str'))
+        data = df.copy().astype(dict(티커='str', 구매가='float', 화폐='str'))
         self.__data = data
     
     @property
     def fdata(self):
         return copy.deepcopy(self.__fdata)
     
-    @fdata.setter
-    def fdata(self, dt):
-        self.__fdata = dt
+#     @fdata.setter
+#     def fdata(self, dt):
+#         self.__fdata = dt
     
     @property
     def rdata(self):
         return copy.deepcopy(self.__rdata)
     
-    @rdata.setter
-    def rdata(self, dt):
-        self.__rdata = dt
+#     @rdata.setter
+#     def rdata(self, dt):
+#         self.__rdata = dt
         
     @property
     def result(self):
         return copy.deepcopy(self.__result)
     
-    @result.setter
-    def result(self, dt):
-        self.__result = dt
+#     @result.setter
+#     def result(self, dt):
+#         self.__result = dt
+
+    @property
+    def rbench(self):
+        return copy.deepcopy(self.__rbench)
  
     def add_row(self, row):
         tmp = pd.DataFrame([row], columns=['티커', '구매일', '구매가', '구매개수', '화폐'])
@@ -73,7 +87,8 @@ class bnp:
             fdata[item] = fdr.DataReader(item, start, day2)
             # 매매 * 상품 사전 준비
             rdata[item] = pd.DataFrame(columns=list(fdata[item].columns) + ['value', 'value_change'],
-                                       index = pd.date_range(self.data.구매일.sort_values(ascending=True).iloc[0],
+                                       index = pd.date_range(self.data.구매일.\
+                                                                 sort_values(ascending=True).iloc[0],
                                                              day2,
                                                              freq = 'D')
                                       ).drop(['Change', 'Volume'], axis=1)
@@ -129,8 +144,8 @@ class bnp:
             # 매매일자 표시
             rdata[item]['add_value'] = [1 if x in tmp.구매일.values else 0 for x in rdata[item].index]
 
-        self.fdata = fdata
-        self.rdata = rdata
+        self.__fdata = fdata
+        self.__rdata = rdata
         
         result = pd.DataFrame(columns=list(rdata[list(rdata.keys())[0]].columns),
                               index = pd.date_range(self.data.구매일.sort_values(ascending=True).iloc[0],
@@ -160,11 +175,32 @@ class bnp:
 #             if result.loc[result.index[num], 'mdd'] > 0:
 #                 result.loc[result.index[num:], 'mdd'] = 0
                 
-        self.result = result
+        self.__result = result
         
         data = self.data
         data.구매일 = data.구매일.dt.strftime('%Y%m%d')
         self.data = data
+    
+    def make_bench(self):
+        result = []
+        tmp = [make_pvc(*value, date=self.result.index[0] - relativedelta(days=7)).rename(key) for key,value in self.bench.items()]
+        for item in tmp:
+            change = item.loc[item.index >= self.result.index[0]] + 1
+            res = pd.Series(0, index=change.index)
+            for row in self.data.copy().values:
+                dt = pd.to_datetime(row[1])
+                if dt < item.index[0]:
+                    continue
+                val = row[2] * row[3]
+                if row[-1] == '달러':
+                    val *= self.fdata['USD/KRW'].Close.loc[self.fdata['USD/KRW'].Close.index == dt].values[0]
+                tmpres = change.loc[change.index >= dt].cumprod()
+                tmpres = tmpres / tmpres.values[0]
+                tmpres = tmpres * val
+                tmpres = tmpres.reindex(res.index).fillna(method='ffill').fillna(0)
+                res += tmpres
+            result.append(res.rename(item.name))
+        self.__rbench = copy.deepcopy(result)
     
     def make_figure(self, pm=''):
         
@@ -188,7 +224,7 @@ class bnp:
                                 high=self.result.High, low=self.result.Low,
                                 x=self.result.index,
                                 name='포트폴리오')
-        fig.add_trace(candle, row=rownum, col=1)        
+        fig.add_trace(candle, row=rownum, col=1)            
 
         # 1-1. 추가금
         for num, row in enumerate(self.result.loc[self.result.add_value >= 1,:].values):
@@ -258,6 +294,19 @@ class bnp:
             
         fig.add_hrect(y0=0, y1=0, line_width=2, fillcolor="black", opacity=1, row=rownum, col=1)
         
+        # 1-2. 벤치마크
+        if self.rbench:
+            for item in self.rbench:
+                fig.add_trace(
+                    go.Scatter(x=item.index,
+                               y=item.values,
+                               mode='lines',
+                               line=dict(width=2),
+                               name=item.name,
+                               visible='legendonly'
+                    ), row=rownum, col=1)
+            
+        
         rownum += 1
         
         # 2. 현재자산 - 추가금
@@ -267,7 +316,8 @@ class bnp:
             if row[-1] == '달러':
                 row_v = row_v * self.fdata['USD/KRW'].reindex(self.result.index).fillna(method='ffill').\
                                     loc[self.fdata['USD/KRW'].index == row[1], 'Close'].values[0]
-            realvalue.loc[realvalue.index >= row[1],:] = realvalue.loc[realvalue.index >= row[1],:] - row_v*row[-2]
+            realvalue.loc[realvalue.index >= row[1],:] = \
+                realvalue.loc[realvalue.index >= row[1],:] - row_v*row[-2]
         if pm[0] == '%':
             realvalue['value'] = realvalue.value / self.result.value
         maxcut = realvalue.loc[realvalue.value == realvalue.value.max(),'value'].index
@@ -279,9 +329,11 @@ class bnp:
         realvalue2 = realvalue.loc[realvalue.index >= maxcut, :]
         
         if pm[0] == '%':
-            realtxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}" for x,y in zip(self.result.index, realvalue1.value)]
+            realtxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}" 
+                       for x,y in zip(self.result.index, realvalue1.value)]
         else:
-            realtxt = [f"{x.strftime('%Y-%m-%d')}: {y}" for x,y in zip(self.result.index, realvalue1.value)]
+            realtxt = [f"{x.strftime('%Y-%m-%d')}: {y}" 
+                       for x,y in zip(self.result.index, realvalue1.value)]
         realine = go.Scatter(x=realvalue1.index,
                              y=realvalue1.value,
                              mode='lines',
@@ -294,9 +346,11 @@ class bnp:
         fig.add_trace(realine, row=rownum, col=1)
         
         if pm[0] == '%':
-            realmaxtxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}" for x,y in zip(self.result.index, realvalue2.value)]
+            realmaxtxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}"
+                          for x,y in zip(self.result.index, realvalue2.value)]
         else:
-            realmaxtxt = [f"{x.strftime('%Y-%m-%d')}: {y}" for x,y in zip(self.result.index, realvalue2.value)]
+            realmaxtxt = [f"{x.strftime('%Y-%m-%d')}: {y}" 
+                          for x,y in zip(self.result.index, realvalue2.value)]
         realine_max = go.Scatter(x=realvalue2.index,
                                  y=realvalue2.value,
                                  mode='lines',
@@ -402,9 +456,11 @@ class bnp:
         # 4. 변동성
         riskdata = self.result.loc[self.result.add_value == 0,:]
         if pm[2] == '%':
-            risktxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}" for x,y in zip(riskdata.index, riskdata.value_change)]
+            risktxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}"
+                       for x,y in zip(riskdata.index, riskdata.value_change)]
         else:
-            risktxt = [f"{x.strftime('%Y-%m-%d')}: {round(y, 3)}" for x,y in zip(riskdata.index, riskdata.value_change)]
+            risktxt = [f"{x.strftime('%Y-%m-%d')}: {round(y, 3)}" 
+                       for x,y in zip(riskdata.index, riskdata.value_change)]
         risk = go.Bar(x=riskdata.index, y=riskdata.value_change,
                       marker_color='black',
                       showlegend=False,
@@ -491,3 +547,38 @@ class bnp:
 #         data['구매일'] = [int(x.strftime('%Y%m%d')) for x in data.구매일]
         data.to_csv('bnp.csv', index=False)
         return data
+    
+def make_pvc(port, p, date='1990'):
+    p = np.array(p) / sum(p)
+    def foo(ds):
+        try:
+            if ds.name == 'cashx':
+                return ds
+        except:
+            pass
+        r = ds.reindex(pd.date_range(ds.index[0], ds.index[-1])).fillna(method='ffill')
+        r = (r.pct_change() + 1).fillna(1)
+        return r
+    res = pd.concat(map(lambda x: foo(x), [dtread.DataReader(x,'yahoo',date)['Adj Close'] 
+                                           if x != '^IRX' else cashx(date)
+                                           for x in port]), 
+                    axis=1).dropna().cumprod() * p
+    res.columns = port
+    
+    for date in pd.date_range(res.index[0], res.index[-1], freq='M'):
+        tmp = res.loc[date,:]
+        tmp = tmp.sum() * p / tmp
+        res.loc[res.index >= date,:] = res.loc[res.index >= date,:] * tmp.values
+    
+    return res.sum(axis=1).pct_change().dropna().rename('change')
+
+def cashx(date='1990'):
+    if isinstance(date, str):
+        date = pd.to_datetime(date[:4], format='%Y')
+    cashx = dtread.DataReader('^IRX','yahoo',date-relativedelta(years=1))['Adj Close']
+    cashx.index = pd.to_datetime(cashx.index)
+    res = cashx.copy()
+    for year, group in cashx.groupby(cashx.index.year):
+        res.loc[res.index.year == year] = (group.dropna() / 100 + 1).mean() ** (1/365)
+    res = res.reindex(pd.date_range(res.index[0], res.index[-1])).fillna(method='ffill')
+    return res.rename('cashx')
