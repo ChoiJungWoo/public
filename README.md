@@ -312,10 +312,10 @@ test.fig.show()
 ```
 
 	> default
-![Alt text](https://github.com/phi-friday/public/blob/main/output4.png)
+![Alt text](https://github.com/phi-friday/public/blob/main/output3.png)
 
 	> click legend
-![Alt text](https://github.com/phi-friday/public/blob/main/output5.png)
+![Alt text](https://github.com/phi-friday/public/blob/main/output3.png)
 
 # add manual benchmark
 ### (rebalance monthly)
@@ -335,4 +335,4 @@ test.make_figure()
 test.fig.update_layout(width=1000, height=1000)
 test.fig.show()
 ```
-![Alt text](https://github.com/phi-friday/public/blob/main/output6.png)
+![Alt text](https://github.com/phi-friday/public/blob/main/output3.png)
