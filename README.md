@@ -310,3 +310,9 @@ test.make_figure()
 test.fig.update_layout(width=1000, height=1000)
 test.fig.show()
 ```
+
+	> default
+![Alt text](https://github.com/phi-friday/public/blob/main/output4.png)
+
+	> click legend
+![Alt text](https://github.com/phi-friday/public/blob/main/output4.png)
