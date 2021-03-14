@@ -318,6 +318,12 @@ test.fig.show()
 ![Alt text](https://github.com/phi-friday/public/blob/main/output5.png)
 
 # add manual benchmark
+### default benchmark + manual benchmark
 ```python
 test.bench['manual_bench_name'] = [['spy', 'shy'], [9, 1]] # or .9, .1 or 4.5, .5 etc...
 ```
+### or only manual benchmark
+```python
+test.bench = {'manual_bench_name':[['spy', 'shy'], [9, 1]]}
+```
+![Alt text](https://github.com/phi-friday/public/blob/main/output6.png)
