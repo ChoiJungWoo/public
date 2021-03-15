@@ -69,24 +69,24 @@ class bnp:
  
     def add_row(self, row):
         tmp = pd.DataFrame([row], columns=['티커', '구매일', '구매가', '구매개수', '화폐'])
-        self.data = self.data.append(tmp).reset_index(drop=True)
+        self.__data = self.__data.append(tmp).reset_index(drop=True)
     
     def make_result(self):
         fdata = dict()
         rdata = dict()
         data = self.data
         data.구매일 = pd.to_datetime(data.구매일, format='%Y%m%d')
-        self.data = data
+#         self.data = data
         day2 = pd.to_datetime(datetime.datetime.today())
         # 매매 기록의 각 종목에 대해 따로 계산 후 합치기
-        for item in self.data.티커.drop_duplicates():
-            tmp = self.data.copy().loc[self.data.티커 == item, :]
+        for item in data.티커.drop_duplicates():
+            tmp = data.copy().loc[self.data.티커 == item, :]
             start = tmp.구매일.sort_values(ascending=True).iloc[0]
             # 상품 차트 정보 다운로드
             fdata[item] = fdr.DataReader(item, start, day2)
             # 매매 * 상품 사전 준비
             rdata[item] = pd.DataFrame(columns=list(fdata[item].columns) + ['value', 'value_change'],
-                                       index = pd.date_range(self.data.구매일.\
+                                       index = pd.date_range(data.구매일.\
                                                                  sort_values(ascending=True).iloc[0],
                                                              day2,
                                                              freq = 'D')
@@ -95,7 +95,7 @@ class bnp:
             # 각 매매 기록에 대한 데이터 생성 후 합치기
             for row in tmp.values:
                 # row = [티커 구매일 구매가 구매개수 화폐]
-                pdata = pd.DataFrame(index = pd.date_range(self.data.구매일.sort_values(ascending=True).iloc[0],
+                pdata = pd.DataFrame(index = pd.date_range(data.구매일.sort_values(ascending=True).iloc[0],
                                                            day2,
                                                            freq = 'D')
                                     )
@@ -147,7 +147,7 @@ class bnp:
         self.__rdata = rdata
         
         result = pd.DataFrame(columns=list(rdata[list(rdata.keys())[0]].columns),
-                              index = pd.date_range(self.data.구매일.sort_values(ascending=True).iloc[0],
+                              index = pd.date_range(data.구매일.sort_values(ascending=True).iloc[0],
                                                     day2,
                                                     freq = 'D')
                              )
@@ -176,15 +176,15 @@ class bnp:
                 
         self.__result = result
         
-        data = self.data
-        data.구매일 = data.구매일.dt.strftime('%Y%m%d')
-        self.data = data
+#         data = self.data
+#         data.구매일 = data.구매일.dt.strftime('%Y%m%d')
+#         self.data = data
     
     def make_bench(self):
         result = []
-        tmp = [make_pvc(*value, date=self.result.index[0] - relativedelta(days=7)).rename(key) for key,value in self.bench.items()]
+        tmp = [make_pvc(*value, date=self.__result.index[0] - relativedelta(days=7)).rename(key) for key,value in self.bench.items()]
         for item in tmp:
-            change = item.loc[item.index >= self.result.index[0]] + 1
+            change = item.loc[item.index >= self.__result.index[0]] + 1
             res = pd.Series(0, index=change.index)
             for row in self.data.copy().values:
                 dt = pd.to_datetime(row[1])
@@ -192,7 +192,7 @@ class bnp:
                     continue
                 val = row[2] * row[3]
                 if row[-1] == '달러':
-                    val *= self.fdata['USD/KRW'].Close.loc[self.fdata['USD/KRW'].Close.index == dt].values[0]
+                    val *= self.__fdata['USD/KRW'].Close.loc[self.__fdata['USD/KRW'].Close.index == dt].values[0]
                 tmpres = change.loc[change.index >= dt].cumprod()
                 tmpres = tmpres / tmpres.values[0]
                 tmpres = tmpres * val
@@ -205,9 +205,9 @@ class bnp:
         
         benchcolor = [x for n,x in enumerate(px.colors.qualitative.Dark24) if n not in [1,2,3,4,7,8,10,11,12,20,23]]
         
-        data = self.data
+        data = self.__data
         data.구매일 = pd.to_datetime(data.구매일, format='%Y%m%d')
-        self.data = data
+#         self.data = data
         
         pm = re.sub('[^%]{1}', ',', pm[:min(3,len(pm))] + ',,,'[min(3,len(pm)):])
         
@@ -221,20 +221,20 @@ class bnp:
         rownum = 1
 
         # 1. 포폴 차트
-        candle = go.Candlestick(open=self.result.Open, close=self.result.Close,
-                                high=self.result.High, low=self.result.Low,
-                                x=self.result.index,
+        candle = go.Candlestick(open=self.__result.Open, close=self.__result.Close,
+                                high=self.__result.High, low=self.__result.Low,
+                                x=self.__result.index,
                                 name='포트폴리오')
         fig.add_trace(candle, row=rownum, col=1)            
 
         # 1-1. 추가금
-        for num, row in enumerate(self.result.loc[self.result.add_value >= 1,:].values):
-            startindex = self.result.loc[self.result.add_value >= 1,:].index[num]
-            tmp = self.data.copy().loc[self.data.구매일 == startindex,:]
+        for num, row in enumerate(self.__result.loc[self.__result.add_value >= 1,:].values):
+            startindex = self.__result.loc[self.__result.add_value >= 1,:].index[num]
+            tmp = data.copy().loc[data.구매일 == startindex,:]
             if '달러' in tmp.화폐.values:
                 tmp.loc[tmp.화폐 == '달러','구매가'] = tmp.loc[tmp.화폐 == '달러','구매가'].values * \
-                    self.fdata['USD/KRW'].reindex(self.result.index).fillna(method='ffill').\
-                        loc[self.fdata['USD/KRW'].index == startindex, 'Close'].values[0]
+                    self.__fdata['USD/KRW'].reindex(self.__result.index).fillna(method='ffill').\
+                        loc[self.__fdata['USD/KRW'].index == startindex, 'Close'].values[0]
             tmp['value'] = tmp.구매가 * tmp.구매개수
             value = tmp.value.sum()
             name = tmp.티커.values
@@ -256,11 +256,11 @@ class bnp:
             
 
             if num:
-                x0 = self.result.loc[self.result.index < startindex,:].index[-1]
-                y0 = np.mean(self.result.loc[self.result.index < startindex,:].values[-1][:4])
+                x0 = self.__result.loc[self.__result.index < startindex,:].index[-1]
+                y0 = np.mean(self.__result.loc[self.__result.index < startindex,:].values[-1][:4])
                 legend = False
-                if np.mean(self.result.loc[startindex,:].values[:4]) < \
-                    np.mean(self.result.loc[self.result.index < startindex,:].values[-1][:4]):
+                if np.mean(self.__result.loc[startindex,:].values[:4]) < \
+                    np.mean(self.__result.loc[self.__result.index < startindex,:].values[-1][:4]):
                     color1, color2 = 'darkred', 'lightsalmon'
                 else:
                     color1, color2 = 'RoyalBlue', 'LightSkyBlue'
@@ -270,7 +270,7 @@ class bnp:
                 legend = True
                 color1, color2 = 'RoyalBlue', 'LightSkyBlue'
             x1 = startindex            
-            y1 = np.mean(self.result.loc[startindex,:].values[:4])
+            y1 = np.mean(self.__result.loc[startindex,:].values[:4])
         #     fig.add_shape(type="rect",
         #                   x0=x0, y0=y0, x1=x1, y1=y1,
         #                   line=dict(color=color1,width=1,),
@@ -296,8 +296,8 @@ class bnp:
         fig.add_hrect(y0=0, y1=0, line_width=2, fillcolor="black", opacity=1, row=rownum, col=1)
         
         # 1-2. 벤치마크
-        if self.rbench:
-            for num, item in enumerate(self.rbench):
+        if self.__rbench:
+            for num, item in enumerate(self.__rbench):
                 benchtxt = [f"{x.strftime('%Y-%m-%d')}: {int(round(y,-1)):,}"
                             for x,y in zip(item.index, item.values)]
                 fig.add_trace(
@@ -316,19 +316,19 @@ class bnp:
         rownum += 1
         
         # 2. 현재자산 - 추가금
-        realvalue = self.result.copy().value.to_frame()
-        if self.rbench:
+        realvalue = self.__result.copy().value.to_frame()
+        if self.__rbench:
             realbench = []
-            for item in self.rbench:
+            for item in self.__rbench:
                 realbench.append(item.copy())
-        for row in self.data.values:
+        for row in data.values:
             row_v = row[2]
             if row[-1] == '달러':
-                row_v = row_v * self.fdata['USD/KRW'].reindex(self.result.index).fillna(method='ffill').\
-                                    loc[self.fdata['USD/KRW'].index == row[1], 'Close'].values[0]
+                row_v = row_v * self.__fdata['USD/KRW'].reindex(self.__result.index).fillna(method='ffill').\
+                                    loc[self.__fdata['USD/KRW'].index == row[1], 'Close'].values[0]
             realvalue.loc[realvalue.index >= row[1],:] = \
                 realvalue.loc[realvalue.index >= row[1],:] - row_v*row[-2]
-            if self.rbench:
+            if self.__rbench:
                 for item in realbench:
                     if item.index[0] > row[1]:
                         break
@@ -337,9 +337,9 @@ class bnp:
                         item.loc[item.index >= row[1]] - row_v*row[-2]
                     realbench.append(item)
         if pm[0] == '%':
-            realvalue['value'] = realvalue.value / self.result.value
-            if self.rbench:
-                for item, origin in zip(realbench, self.rbench):
+            realvalue['value'] = realvalue.value / self.__result.value
+            if self.__rbench:
+                for item, origin in zip(realbench, self.__rbench):
                     realbench = realbench[1:]
                     realbench.append(item / origin)
         maxcut = realvalue.loc[realvalue.value == realvalue.value.max(),'value'].index
@@ -352,10 +352,10 @@ class bnp:
         
         if pm[0] == '%':
             realtxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}" 
-                       for x,y in zip(self.result.index, realvalue1.value)]
+                       for x,y in zip(self.__result.index, realvalue1.value)]
         else:
             realtxt = [f"{x.strftime('%Y-%m-%d')}: {int(round(y,-1)):,}" 
-                       for x,y in zip(self.result.index, realvalue1.value)]
+                       for x,y in zip(self.__result.index, realvalue1.value)]
         realine = go.Scatter(x=realvalue1.index,
                              y=realvalue1.value,
                              mode='lines',
@@ -369,10 +369,10 @@ class bnp:
         
         if pm[0] == '%':
             realmaxtxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}"
-                          for x,y in zip(self.result.index, realvalue2.value)]
+                          for x,y in zip(self.__result.index, realvalue2.value)]
         else:
             realmaxtxt = [f"{x.strftime('%Y-%m-%d')}: {int(round(y,-1)):,}" 
-                          for x,y in zip(self.result.index, realvalue2.value)]
+                          for x,y in zip(self.__result.index, realvalue2.value)]
         realine_max = go.Scatter(x=realvalue2.index,
                                  y=realvalue2.value,
                                  mode='lines',
@@ -384,7 +384,7 @@ class bnp:
                                  name='현재자산 - 추가금')
         fig.add_trace(realine_max, row=rownum, col=1)
         
-        if self.rbench:
+        if self.__rbench:
             for num, item in enumerate(realbench):
                 if pm[0] == '%':
                     benchtxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}" 
@@ -448,12 +448,12 @@ class bnp:
         # 3. MDD
         
         if pm[1] == '%':
-            mddy = self.result.mdd
-            mddtxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}" for x,y in zip(self.result.index, mddy)]
+            mddy = self.__result.mdd
+            mddtxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}" for x,y in zip(self.__result.index, mddy)]
         else:
-            mddy = (self.result.mdd * self.result.value).round(-1).astype('int')
-            mddtxt = mddtxt = [f"{x.strftime('%Y-%m-%d')}: {y:,}" for x,y in zip(self.result.index, mddy)]
-        mddline = go.Scatter(x=self.result.index, 
+            mddy = (self.__result.mdd * self.__result.value).round(-1).astype('int')
+            mddtxt = mddtxt = [f"{x.strftime('%Y-%m-%d')}: {y:,}" for x,y in zip(self.__result.index, mddy)]
+        mddline = go.Scatter(x=self.__result.index, 
                              y=mddy, 
                              mode='lines', 
                              line=dict(color='red'), 
@@ -463,17 +463,17 @@ class bnp:
                              name='MDD')
         fig.add_trace(mddline, row=rownum, col=1)
 
-        zerodays = self.result.\
-            loc[((self.result.mdd == 0) & \
-                 (self.result.mdd.shift(-1) != 0)),:].index
+        zerodays = self.__result.\
+            loc[((self.__result.mdd == 0) & \
+                 (self.__result.mdd.shift(-1) != 0)),:].index
         if len(zerodays) > 0:
             for x0 in zerodays:
-                zerotmp = self.result.loc[self.result.index > x0, 'mdd']
+                zerotmp = self.__result.loc[self.__result.index > x0, 'mdd']
                 nonzero = zerotmp.loc[(zerotmp == 0) & (zerotmp.shift(1) != 0)]
                 if len(nonzero) > 0:
                     x1 = nonzero.index[0]
                 else:
-                    x1 = self.result.index[-1]
+                    x1 = self.__result.index[-1]
                 fig.add_vrect(
                     x0=x0, x1=x1,
                     fillcolor="LightSalmon", opacity=0.5,
@@ -493,8 +493,8 @@ class bnp:
 #                 layer="below", line_width=0,
 #                 row=rownum, col=1)
 
-        if self.rbench:
-            for num, item in enumerate(self.rbench):
+        if self.__rbench:
+            for num, item in enumerate(self.__rbench):
                 mddbench = (item / item.cummax() - 1).round(4)
                 if pm[1] == '%':
                     benchtxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}" for x,y in zip(item.index, mddbench)]
@@ -516,7 +516,7 @@ class bnp:
         rownum += 1
 
         # 4. 변동성
-        riskdata = self.result.loc[self.result.add_value == 0,:]
+        riskdata = self.__result.loc[self.__result.add_value == 0,:]
         if pm[2] == '%':
             risktxt = [f"{x.strftime('%Y-%m-%d')}: {y:.2%}"
                        for x,y in zip(riskdata.index, riskdata.value_change)]
@@ -532,8 +532,8 @@ class bnp:
                       name='변동성')
         fig.add_trace(risk, row=rownum, col=1)
 
-        riskstd = np.std(self.result.loc[self.result.add_value == 0,:].value_change)
-        riskcenter = np.mean(self.result.loc[self.result.add_value == 0,:].value_change)
+        riskstd = np.std(self.__result.loc[self.__result.add_value == 0,:].value_change)
+        riskcenter = np.mean(self.__result.loc[self.__result.add_value == 0,:].value_change)
         for item, color in zip([[-1,1], [-2,-1], [1,2], [-3,-2], [2,3]],
                                ['yellow','orange','orange','red','red']):
             fig.add_hrect(
@@ -599,20 +599,28 @@ class bnp:
                          )
         self.fig = fig
         
-        data = self.data
-        data.구매일 = data.구매일.dt.strftime('%Y%m%d')
-        self.data = data
+#         data = self.data
+#         data.구매일 = data.구매일.dt.strftime('%Y%m%d')
+#         self.data = data
         
         return self.fig
     
     def to_csv(self):
-        data = self.data.copy()
+        data = self.__data.copy()
 #         data['구매일'] = [int(x.strftime('%Y%m%d')) for x in data.구매일]
         data.to_csv('bnp.csv', index=False)
         return data
     
 def make_pvc(port, p, date='1990'):
-    p = np.array(p) / sum(p)
+    p = np.array([p])
+    if p.shape[0] == 1:
+        p = np.array(p.tolist()[0]) / sum(p)
+        chk = False
+    else:
+        ps = np.array(list(map(lambda x: x / sum(x),p)))
+        pn = 0
+        p = ps[pn]
+        chk = True
     def foo(ds):
         try:
             if ds.name == 'cashx':
@@ -627,8 +635,18 @@ def make_pvc(port, p, date='1990'):
                                            for x in port]), 
                     axis=1).dropna().cumprod() * p
     res.columns = port
+    drange = pd.date_range(res.index[0], res.index[-1], freq='M')
     
-    for date in pd.date_range(res.index[0], res.index[-1], freq='M'):
+    if chk and ps.shape[0] != len(drange) + int(drange[0] != res.index[0]):
+        print('p부족')
+        return -1
+    
+    for date in drange:
+        if date == res.index[0]:
+            continue
+        if chk:
+            pn += 1
+            p = ps[pn]
         tmp = res.loc[date,:]
         tmp = tmp.sum() * p / tmp
         res.loc[res.index >= date,:] = res.loc[res.index >= date,:] * tmp.values
